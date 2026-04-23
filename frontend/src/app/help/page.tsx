@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { AppHeader } from '@/components/AppHeader';
@@ -8,7 +8,7 @@ import { useAuthStore } from '@/store/authStore';
 
 type Tab = 'ticket' | 'chat' | 'faq';
 
-export default function HelpPage() {
+function HelpPageContent() {
   const [tab, setTab] = useState<Tab>('ticket');
   const searchParams = useSearchParams();
   const presetTxnId = searchParams.get('txn_id') || '';
@@ -148,5 +148,13 @@ export default function HelpPage() {
         {tab === 'faq' && <p className="mt-8 text-center text-gray-500">FAQs coming soon</p>}
       </div>
     </div>
+  );
+}
+
+export default function HelpPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
+      <HelpPageContent />
+    </Suspense>
   );
 }
