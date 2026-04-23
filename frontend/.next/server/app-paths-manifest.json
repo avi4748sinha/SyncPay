@@ -1,0 +1,14 @@
+{
+  "/splash/page": "app/splash/page.js",
+  "/onboarding/page": "app/onboarding/page.js",
+  "/login/page": "app/login/page.js",
+  "/otp/page": "app/otp/page.js",
+  "/api/auth/verify-otp/route": "app/api/auth/verify-otp/route.js",
+  "/api/wallet/route": "app/api/wallet/route.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/api/transactions/route": "app/api/transactions/route.js",
+  "/settings/page": "app/settings/page.js",
+  "/api/auth/me/route": "app/api/auth/me/route.js",
+  "/send/page": "app/send/page.js",
+  "/send/scan/page": "app/send/scan/page.js"
+}

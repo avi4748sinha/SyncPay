@@ -1,0 +1,68 @@
+============================================
+SYNCPAY - SAB CMD COMMANDS (COPY PASTE)
+============================================
+
+--- STEP 1: PostgreSQL me database banao ---
+
+(PostgreSQL installed ho, bin folder in PATH ho)
+
+cd C:\Program Files\PostgreSQL\16\bin
+psql -U postgres -c "CREATE DATABASE syncpay;"
+
+Password jab puche: 123456
+
+(Agar psql already PATH me hai to sirf ye chalao:)
+psql -U postgres -c "CREATE DATABASE syncpay;"
+
+
+--- STEP 2: Redis (agar use kar rahe ho) ---
+
+Redis start karna ho to:
+redis-server
+
+Ya Windows Service se Redis start karo.
+
+
+--- STEP 3: Backend - Terminal 1 ---
+
+cd C:\Users\Avinash\Desktop\SyncPay\backend
+npm install
+npm run db:init
+npm run db:seed
+npm run dev
+
+(Backend chalega: http://localhost:4001)
+
+
+--- STEP 4: Frontend - Naya Terminal 2 ---
+
+cd C:\Users\Avinash\Desktop\SyncPay\frontend
+npm install
+npm run dev
+
+(Frontend chalega: http://localhost:3000)
+
+
+--- OPTIONAL: Ek line me backend (DB pehle bana lo) ---
+
+cd C:\Users\Avinash\Desktop\SyncPay\backend && npm install && npm run db:init && npm run db:seed && npm run dev
+
+
+--- OPTIONAL: Ek line me frontend ---
+
+cd C:\Users\Avinash\Desktop\SyncPay\frontend && npm install && npm run dev
+
+
+--- PostgreSQL useful commands ---
+
+Database list dekhna:
+psql -U postgres -c "\l"
+
+SyncPay DB me connect:
+psql -U postgres -d syncpay
+
+Tables dekhna (syncpay DB me connect hone ke baad):
+\dt
+
+Exit:
+\q
