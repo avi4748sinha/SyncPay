@@ -79,6 +79,7 @@ export default function ReceivePage() {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+    const context = ctx;
 
     function tick() {
       if (video.readyState !== video.HAVE_ENOUGH_DATA) {
@@ -88,9 +89,9 @@ export default function ReceivePage() {
 
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0);
+      context.drawImage(video, 0, 0);
 
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
       const code = jsQR(imageData.data, imageData.width, imageData.height);
 
       if (code && !decodedRef.current) {

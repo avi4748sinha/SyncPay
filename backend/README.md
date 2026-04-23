@@ -74,11 +74,14 @@ TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 TWILIO_AUTH_TOKEN=xxxxxxxxxxxxxxxxxxxxxxxxxxxx
 TWILIO_FROM_NUMBER=+12602613489
 OTP_SMS_COUNTRY_CODE=91
+ALLOW_LOGGED_OTP=false
+ALLOW_OTP_WITHOUT_SMS=false
 ```
 
 - `OTP_SMS_COUNTRY_CODE=91` assumes app stores 10-digit Indian mobile numbers.
 - SMS destination is built as `+<country_code><10_digit_mobile>`.
 - On Twilio trial accounts, SMS starts with `Sent from your Twilio trial account - ...`.
+- For demo hosting without a live SMS provider, set `ALLOW_LOGGED_OTP=true` and `ALLOW_OTP_WITHOUT_SMS=true` to read OTPs from backend logs.
 
 ### Message behavior
 
@@ -89,7 +92,7 @@ OTP_SMS_COUNTRY_CODE=91
 
 - Normal SMS does not support logo/image rendering. For logo in message, use MMS/WhatsApp template flow.
 - Keep `TWILIO_AUTH_TOKEN` private; never commit secrets to GitHub.
-- If Twilio send fails in production, API returns `Failed to send OTP SMS`.
+- If `ALLOW_OTP_WITHOUT_SMS=false` and Twilio send fails, API returns `Failed to send OTP SMS`.
 
 ## Security
 

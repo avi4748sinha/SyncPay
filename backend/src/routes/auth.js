@@ -14,6 +14,11 @@ function randomOTP() {
   return String(Math.floor(100000 + Math.random() * 900000));
 }
 
+function logOtpIfEnabled(mobileNumber, otp) {
+  if (!config.allowLoggedOtp) return;
+  console.log(`[OTP] ${mobileNumber} -> ${otp}`);
+}
+
 // POST /auth/login - only for registered users; send OTP
 router.post(
   '/login',
@@ -50,13 +55,14 @@ router.post(
         type: 'login',
         name: user.rows[0].name,
       });
-      if (!smsOk && config.nodeEnv !== 'development') {
+      if (!smsOk && !config.allowOtpWithoutSms) {
         return res.status(500).json({ success: false, message: 'Failed to send OTP SMS' });
       }
 
-      if (config.nodeEnv === 'development') {
-        console.log('[DEV] OTP for', normalized, '->', otp, '(see server terminal only)');
+      if (!smsOk) {
+        console.warn(`[OTP] SMS provider unavailable for ${normalized}; using logged OTP fallback.`);
       }
+      logOtpIfEnabled(normalized, otp);
       res.json({ success: true, message: 'OTP sent' });
     } catch (err) {
       console.error(err);
@@ -105,13 +111,14 @@ router.post(
         type: 'signup',
         name,
       });
-      if (!smsOk && config.nodeEnv !== 'development') {
+      if (!smsOk && !config.allowOtpWithoutSms) {
         return res.status(500).json({ success: false, message: 'Failed to send OTP SMS' });
       }
 
-      if (config.nodeEnv === 'development') {
-        console.log('[DEV] OTP for', normalized, '->', otp, '(see server terminal only)');
+      if (!smsOk) {
+        console.warn(`[OTP] SMS provider unavailable for ${normalized}; using logged OTP fallback.`);
       }
+      logOtpIfEnabled(normalized, otp);
       res.json({ success: true, message: 'OTP sent' });
     } catch (err) {
       console.error(err);

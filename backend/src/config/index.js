@@ -3,6 +3,10 @@ import 'dotenv/config';
 export const config = {
   port: parseInt(process.env.PORT || '4000', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
+  allowLoggedOtp:
+    process.env.ALLOW_LOGGED_OTP === 'true' || process.env.NODE_ENV === 'development',
+  allowOtpWithoutSms:
+    process.env.ALLOW_OTP_WITHOUT_SMS === 'true' || process.env.NODE_ENV === 'development',
   databaseUrl: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/syncpay',
   redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
   jwt: {
