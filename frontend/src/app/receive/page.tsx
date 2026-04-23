@@ -220,7 +220,7 @@ export default function ReceivePage() {
               onClick={() => setStep('scan')}
               className="mt-8 w-full rounded-button gradient-teal py-3 font-medium text-white"
             >
-              Next: Scan Payment QR ->
+              Next: Scan Payment QR
             </button>
           </>
         )}
