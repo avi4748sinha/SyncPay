@@ -7,6 +7,9 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
+
+    "build": "echo build done",
+
     "db:init": "node src/db/init.js",
     "db:migrate": "node src/db/migrate-add-role.js",
     "db:migrate-tickets": "node src/db/migrate-tickets.js",
