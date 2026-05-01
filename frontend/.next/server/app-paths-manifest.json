@@ -1,10 +1,7 @@
 {
-  "/dashboard/page": "app/dashboard/page.js",
-  "/api/wallet/route": "app/api/wallet/route.js",
-  "/receive/page": "app/receive/page.js",
-  "/send/page": "app/send/page.js",
-  "/notifications/page": "app/notifications/page.js",
-  "/settings/page": "app/settings/page.js",
-  "/api/transactions/route": "app/api/transactions/route.js",
-  "/api/wallet/offline-limit/route": "app/api/wallet/offline-limit/route.js"
+  "/otp/page": "app/otp/page.js",
+  "/login/page": "app/login/page.js",
+  "/splash/page": "app/splash/page.js",
+  "/admin/page": "app/admin/page.js",
+  "/onboarding/page": "app/onboarding/page.js"
 }
