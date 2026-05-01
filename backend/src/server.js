@@ -12,7 +12,9 @@ import supportRoutes from './routes/support.js';
 
 const app = express();
 
-app.use(cors({ origin: true, credentials: true }));
+// ✅ CORS (allow your frontend)
+app.use(cors({ origin: process.env.FRONTEND_URL || true, credentials: true }));
+
 app.use(express.json());
 
 // Health
@@ -37,6 +39,9 @@ app.use((err, req, res, next) => {
   res.status(500).json({ success: false, message: 'Internal server error' });
 });
 
-app.listen(config.port, () => {
-  console.log(`SyncPay API running on http://localhost:${config.port}`);
+// ✅ IMPORTANT FIX (Railway compatible)
+const PORT = process.env.PORT || config.port || 5000;
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`SyncPay API running on port ${PORT}`);
 });
