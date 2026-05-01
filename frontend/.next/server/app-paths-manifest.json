@@ -1,7 +1,0 @@
-{
-  "/otp/page": "app/otp/page.js",
-  "/login/page": "app/login/page.js",
-  "/splash/page": "app/splash/page.js",
-  "/admin/page": "app/admin/page.js",
-  "/onboarding/page": "app/onboarding/page.js"
-}
