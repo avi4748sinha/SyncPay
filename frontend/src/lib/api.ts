@@ -12,9 +12,8 @@ export async function api<T>(
 ): Promise<T> {
   const token = getToken();
 
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...(options.headers || {}),
   };
 
   if (token) {
@@ -23,7 +22,10 @@ export async function api<T>(
 
   const res = await fetch(`${API_BASE}${path}`, {
     ...options,
-    headers,
+    headers: {
+      ...headers,
+      ...(options.headers || {}),
+    },
   });
 
   let data: any = {};
