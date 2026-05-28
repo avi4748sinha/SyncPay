@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>SyncPay Viva Preparation Notes</title>
+  <style>
+    @page { size: A4; margin: 14mm; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: #10213f;
+      background: #fff;
+      line-height: 1.45;
+      font-size: 11.2pt;
+    }
+    .cover {
+      min-height: 94vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      text-align: center;
+      border: 2px solid #d7e3f8;
+      padding: 34px;
+      border-radius: 14px;
+    }
+    .logo { width: 148px; margin: 0 auto 20px; }
+    h1 { font-size: 36pt; margin: 8px 0 6px; color: #08265d; letter-spacing: .2px; }
+    h2 {
+      font-size: 19pt;
+      margin: 0 0 10px;
+      color: #083b85;
+      border-bottom: 2px solid #e1ebfb;
+      padding-bottom: 6px;
+      page-break-after: avoid;
+    }
+    h3 { font-size: 13.5pt; color: #0b6f45; margin: 16px 0 7px; page-break-after: avoid; }
+    h4 { margin: 10px 0 4px; color: #63389c; }
+    p { margin: 6px 0; }
+    ul, ol { margin: 6px 0 10px 20px; padding: 0; }
+    li { margin: 3px 0; }
+    .subtitle { font-size: 16pt; color: #536174; font-weight: 600; }
+    .muted { color: #59687c; }
+    .tagline { margin-top: 16px; font-size: 13pt; color: #0b6f45; font-weight: 700; }
+    .page { page-break-before: always; padding-top: 4px; }
+    .no-break { page-break-inside: avoid; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .card {
+      border: 1px solid #d7e3f8;
+      border-radius: 8px;
+      padding: 11px 12px;
+      background: #fbfdff;
+      page-break-inside: avoid;
+    }
+    .callout {
+      border-left: 4px solid #0b8f5a;
+      background: #f1fbf6;
+      padding: 10px 12px;
+      margin: 10px 0;
+      page-break-inside: avoid;
+    }
+    .warn {
+      border-left-color: #e67e22;
+      background: #fff7ec;
+    }
+    table { width: 100%; border-collapse: collapse; margin: 8px 0 12px; page-break-inside: avoid; }
+    th, td { border: 1px solid #d8e2f0; padding: 6px 7px; vertical-align: top; }
+    th { background: #edf5ff; color: #08265d; text-align: left; }
+    code, pre {
+      font-family: Consolas, "Courier New", monospace;
+      background: #f4f7fb;
+      color: #13233f;
+    }
+    code { padding: 1px 4px; border-radius: 4px; }
+    pre {
+      padding: 9px 10px;
+      border: 1px solid #d8e2f0;
+      border-radius: 7px;
+      overflow: hidden;
+      white-space: pre-wrap;
+      font-size: 9.2pt;
+      page-break-inside: avoid;
+    }
+    .diagram { width: 100%; border: 1px solid #d9e3f2; border-radius: 9px; margin: 8px 0 12px; }
+    .small { font-size: 9.5pt; }
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 7px;
+      margin: 8px 0 12px;
+    }
+    .step {
+      border: 1px solid #cdddf3;
+      background: #f8fbff;
+      padding: 8px;
+      border-radius: 7px;
+      min-height: 74px;
+      font-size: 9.4pt;
+    }
+    .step b { color: #083b85; }
+    .toc li { margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <section class="cover">
+    <img class="logo" src="syncpay-logo.png" alt="SyncPay logo">
+    <h1>SyncPay</h1>
+    <p class="subtitle">College Project Documentation + External Viva Notes</p>
+    <p class="tagline">Offline-first Digital Wallet with QR Payments and Central Ledger</p>
+    <p class="muted">Prepared for team revision: architecture, frontend, backend, database schema, flows, setup steps, queries, and viva answers.</p>
+    <div class="callout" style="text-align:left; margin-top:28px;">
+      <b>One-line explanation:</b> SyncPay ek offline-first digital wallet system hai jisme user QR scan karke payment bhej sakta hai, offline condition me transaction local IndexedDB me save hoti hai, aur internet aate hi backend/PostgreSQL central ledger me sync ho jati hai.
+    </div>
+  </section>
+
+  <section class="page">
+    <h2>1. Table Of Contents</h2>
+    <ol class="toc">
+      <li>Project overview and problem statement</li>
+      <li>Technology stack and why each technology is used</li>
+      <li>Team role-wise introduction for presentation</li>
+      <li>Folder/file structure with role of important files</li>
+      <li>System architecture diagram and explanation</li>
+      <li>Technical deep dive: OTP, QR, proxy, sync and security</li>
+      <li>Frontend working: pages, stores, local storage, QR flow</li>
+      <li>Backend working: Express routes, authentication, wallet, sync</li>
+      <li>Database schema, relationships, indexes, and sample SQL queries</li>
+      <li>Online and offline transaction flows</li>
+      <li>Environment variables, installation, and run steps</li>
+      <li>Viva questions with confident Hinglish answers</li>
+    </ol>
+    <div class="callout">
+      <b>Presentation opening script:</b> Good morning sir/ma'am. Our project is SyncPay, an offline-first QR based wallet. Normal payment apps fail when internet is weak, so our system allows a user to prepare and record payments offline using QR and local storage. When the device becomes online, pending transactions are automatically synced to the backend, where PostgreSQL works as the central ledger.
+    </div>
+  </section>
+
+  <section class="page">
+    <h2>2. Project Overview</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>Problem</h3>
+        <p>India me many users low network area, campus, shops, events, ya travel condition me payment karna chahte hain. Normal wallet/UPI flow internet ke bina fail ho sakta hai.</p>
+      </div>
+      <div class="card">
+        <h3>Solution</h3>
+        <p>SyncPay wallet QR based flow provide karta hai. Online me immediate settlement hota hai. Offline me transaction signed payload ke form me local IndexedDB me save hota hai and baad me sync engine usko backend par bhejta hai.</p>
+      </div>
+    </div>
+    <h3>Main Features</h3>
+    <ul>
+      <li>Mobile number based signup/login with OTP.</li>
+      <li>JWT based authenticated session.</li>
+      <li>Wallet balance, available balance, offline limit and pending amount display.</li>
+      <li>QR based receiver identity scan and payment QR scan.</li>
+      <li>Online payment: direct backend ledger update.</li>
+      <li>Offline payment: local IndexedDB queue and automatic sync when network returns.</li>
+      <li>Admin panel: users, wallet credit, stats, transactions, support tickets.</li>
+      <li>Support ticket and notifications modules.</li>
+    </ul>
+    <h3>Project Type</h3>
+    <p>This is a full-stack web/PWA-style application. Frontend runs in browser using Next.js. Backend runs as Express.js REST API. PostgreSQL stores permanent ledger data. Redis/Twilio are optional services; development fallback is available.</p>
+  </section>
+
+  <section class="page">
+    <h2>3. Team Role-Wise Introduction</h2>
+    <p>External presentation me team ko confidence ke saath role-wise bolna chahiye. Ye split natural lagega because har member apne module ko explain karega instead of sab kuch ek person bol raha ho.</p>
+    <table>
+      <tr><th>Member</th><th>Suggested Role</th><th>Intro Lines For Presentation</th></tr>
+      <tr>
+        <td><b>Avinash</b></td>
+        <td>Backend, API, Database Integration</td>
+        <td>“I worked mainly on backend services, API routes, PostgreSQL connection, authentication, wallet transaction logic and offline sync validation. My part ensures that every payment finally reaches the central ledger safely.”</td>
+      </tr>
+      <tr>
+        <td><b>Aviral</b></td>
+        <td>Project Overview, Authentication Flow, Wallet Flow</td>
+        <td>“I focused on explaining the project problem statement, overall user journey, OTP authentication flow and wallet payment lifecycle. My part connects the business idea with the technical working.”</td>
+      </tr>
+      <tr>
+        <td><b>Shubhi</b></td>
+        <td>Frontend UI, User Flow, QR Screens</td>
+        <td>“I focused on the user-facing screens like onboarding, login, dashboard, send/receive payment flow and QR display. My work makes the app mobile-friendly and easy for users to understand.”</td>
+      </tr>
+      <tr>
+        <td><b>Abhinay</b></td>
+        <td>Offline Sync, Database Schema, Testing/Demo</td>
+        <td>“I handled the offline-first logic understanding, database schema explanation, sync flow testing and final demo preparation. My part connects the local pending queue with the backend ledger flow.”</td>
+      </tr>
+    </table>
+    <div class="callout">
+      <b>Team intro script:</b> Our team divided the project into four main responsibilities: project/authentication flow, frontend experience, backend/ledger services, and offline sync/database validation. This helped us build SyncPay as a complete full-stack wallet application.
+    </div>
+  </section>
+
+  <section class="page">
+    <h2>4. Technology Stack</h2>
+    <table>
+      <tr><th>Layer</th><th>Technology</th><th>Use In Project</th></tr>
+      <tr><td>Frontend</td><td>Next.js 14, React 18, TypeScript</td><td>Pages, routing, client UI, API proxy routes, QR screens, dashboard.</td></tr>
+      <tr><td>Styling</td><td>Tailwind CSS</td><td>Responsive wallet-style mobile UI and reusable utility classes.</td></tr>
+      <tr><td>State</td><td>Zustand</td><td>Auth, wallet and network status state.</td></tr>
+      <tr><td>QR</td><td>qrcode.react, jsQR</td><td>Generate QR code and scan QR from camera.</td></tr>
+      <tr><td>Offline Storage</td><td>IndexedDB via idb-keyval</td><td>Pending offline transactions queue on client device.</td></tr>
+      <tr><td>Backend</td><td>Node.js, Express.js</td><td>REST APIs for auth, wallet, transactions, sync, admin, support.</td></tr>
+      <tr><td>Database</td><td>PostgreSQL</td><td>Central ledger: users, wallets, transactions, devices, logs, notifications.</td></tr>
+      <tr><td>Auth/Security</td><td>JWT, bcryptjs, SHA-256 hash</td><td>JWT session, PIN hash, offline transaction signature/hash verification.</td></tr>
+      <tr><td>Optional Services</td><td>Redis, Twilio</td><td>OTP storage and SMS. In development Redis/SMS can fall back to logs/in-memory.</td></tr>
+    </table>
+    <div class="callout">
+      <b>Viva answer:</b> We used Next.js because it gives routing, API proxy routes and React UI in one framework. Express is used for backend REST APIs. PostgreSQL is chosen because wallet ledger needs relational consistency and transactions.
+    </div>
+  </section>
+
+  <section class="page">
+    <h2>5. Folder And File Structure</h2>
+    <h3>Root Folder</h3>
+    <table>
+      <tr><th>Path</th><th>Meaning</th></tr>
+      <tr><td><code>frontend/</code></td><td>Next.js client app, UI pages, stores, browser-side offline logic, API proxy routes.</td></tr>
+      <tr><td><code>backend/</code></td><td>Express API server, database connection, REST routes, auth middleware, schema scripts.</td></tr>
+      <tr><td><code>syncpay-logo.png</code></td><td>Project logo used in UI and documentation.</td></tr>
+      <tr><td><code>RUN.md</code>, reports</td><td>Existing setup/report notes. Final viva notes are generated from actual code reading.</td></tr>
+    </table>
+    <h3>Frontend Important Files</h3>
+    <table>
+      <tr><th>File/Folder</th><th>Role</th></tr>
+      <tr><td><code>src/app/layout.tsx</code></td><td>Root layout. Global wrapper and CSS entry.</td></tr>
+      <tr><td><code>src/app/providers.tsx</code></td><td>Restores auth from localStorage and starts online sync listener.</td></tr>
+      <tr><td><code>src/app/login</code>, <code>signup</code>, <code>otp</code></td><td>Auth screens for mobile login/signup and OTP verification.</td></tr>
+      <tr><td><code>src/app/dashboard/page.tsx</code></td><td>Main wallet home: balance, offline spendable, pending amount, quick actions.</td></tr>
+      <tr><td><code>src/app/send/*</code></td><td>Sender flow: scan receiver QR, enter amount, confirm PIN, show payment QR.</td></tr>
+      <tr><td><code>src/app/receive/page.tsx</code></td><td>Receiver flow: shows identity QR and scans final payment QR.</td></tr>
+      <tr><td><code>src/app/api/*</code></td><td>Next.js server routes acting as proxy to Express backend.</td></tr>
+      <tr><td><code>src/lib/idb.ts</code></td><td>IndexedDB helper for saving, reading and marking pending offline transactions.</td></tr>
+      <tr><td><code>src/lib/syncEngine.ts</code></td><td>Auto-sync logic when network becomes online.</td></tr>
+      <tr><td><code>src/lib/offlineSignature.ts</code></td><td>Creates deterministic SHA-256 signature/hash for offline transaction payload.</td></tr>
+      <tr><td><code>src/store/*.ts</code></td><td>Zustand stores for auth, wallet and online/offline status.</td></tr>
+    </table>
+  </section>
+
+  <section class="page">
+    <h2>6. Backend File Structure</h2>
+    <table>
+      <tr><th>File/Folder</th><th>Role</th></tr>
+      <tr><td><code>src/server.js</code></td><td>Express app entry. CORS, JSON middleware, route mounting, health route and error handler.</td></tr>
+      <tr><td><code>src/config/index.js</code></td><td>Reads environment variables like PORT, DATABASE_URL, JWT_SECRET, OTP expiry, offline limit.</td></tr>
+      <tr><td><code>src/db/pool.js</code></td><td>PostgreSQL connection pool using <code>pg</code>.</td></tr>
+      <tr><td><code>src/db/schema.sql</code></td><td>Main database schema: tables, types, indexes and wallet trigger function.</td></tr>
+      <tr><td><code>src/db/init.js</code></td><td>Runs schema/init database setup.</td></tr>
+      <tr><td><code>src/db/seed.js</code></td><td>Creates admin and demo users/wallets.</td></tr>
+      <tr><td><code>src/db/redis.js</code></td><td>OTP store. In development it uses in-memory Map instead of Redis.</td></tr>
+      <tr><td><code>src/middleware/auth.js</code></td><td>JWT verification and admin role guard.</td></tr>
+      <tr><td><code>src/routes/auth.js</code></td><td>Signup, login, OTP verify, user session, UPI PIN set.</td></tr>
+      <tr><td><code>src/routes/wallet.js</code></td><td>Get wallet, get receiver user, update offline limit.</td></tr>
+      <tr><td><code>src/routes/transactions.js</code></td><td>Transaction list, online send, receiver-side offline settlement.</td></tr>
+      <tr><td><code>src/routes/sync.js</code></td><td>Sender-side offline pending transaction sync endpoint.</td></tr>
+      <tr><td><code>src/routes/admin.js</code></td><td>Admin stats, users, wallet credit, transactions, pending syncs, reverse transaction.</td></tr>
+      <tr><td><code>src/routes/support.js</code></td><td>User support ticket creation.</td></tr>
+      <tr><td><code>src/utils/crypto.js</code></td><td>Payload hashing/signature verification and timestamp validity.</td></tr>
+    </table>
+  </section>
+
+  <section class="page">
+    <h2>7. System Architecture</h2>
+    <img class="diagram" src="file:///C:/Users/Avinash/Downloads/9fe6044a-247e-470f-a94b-268e761c0f20.png" alt="SyncPay system architecture">
+    <h3>Architecture Explanation</h3>
+    <ol>
+      <li><b>Client/browser:</b> Next.js pages run in browser. User interacts with login, dashboard, send, receive, history, help and admin pages.</li>
+      <li><b>State management:</b> Zustand stores auth token/user, wallet data, and network status.</li>
+      <li><b>Offline storage:</b> IndexedDB stores pending transaction payloads when internet is not available.</li>
+      <li><b>Next.js API proxy:</b> Frontend calls <code>/api/...</code> routes. These proxy requests to Express backend using <code>NEXT_PUBLIC_API_URL</code>.</li>
+      <li><b>Backend services:</b> Express routes validate JWT, verify PIN/signature, update wallets, create transactions and logs.</li>
+      <li><b>Data layer:</b> PostgreSQL is the main source of truth. Redis/Twilio are optional for OTP/SMS.</li>
+    </ol>
+    <div class="warn callout">
+      <b>Important for viva:</b> Do not say money is actually moved through UPI. This project simulates a wallet ledger. UPI/payment network integration is future scope.
+    </div>
+  </section>
+
+  <section class="page">
+    <h2>8. Technical Deep Dive: How Everything Works</h2>
+    <h3>8.1 How OTP Works End-To-End</h3>
+    <div class="flow">
+      <div class="step"><b>1. Mobile Enter</b><br>User enters 10 digit mobile number.</div>
+      <div class="step"><b>2. API Call</b><br>Frontend proxy calls backend <code>/auth/login</code> or <code>/auth/signup</code>.</div>
+      <div class="step"><b>3. OTP Generate</b><br>Backend creates random 6 digit OTP.</div>
+      <div class="step"><b>4. OTP Store</b><br>Redis stores OTP with TTL; dev uses in-memory Map.</div>
+      <div class="step"><b>5. Verify</b><br>User enters OTP, backend matches and returns JWT.</div>
+    </div>
+    <p><b>Important point:</b> OTP frontend ko response me directly nahi bheja jata. Production me OTP SMS provider/Twilio ke through user ke phone par jayega. Development me <code>ALLOW_LOGGED_OTP=true</code> hone par backend terminal me OTP print ho sakta hai so testing easy ho jati hai.</p>
+    <pre>Login request:
+POST /auth/login
+Body: { "mobile_number": "9504919122" }
+
+Verify request:
+POST /auth/verify-otp
+Body: { "mobile_number": "9504919122", "otp": "123456" }
+
+Successful verify response:
+{ success: true, token: "JWT_TOKEN", user: { id, name, mobile_number, sync_id, role } }</pre>
+    <p>OTP one-time use hota hai. Verification ke baad <code>deleteOTP(mobile)</code> call hota hai, so same OTP again use nahi kar sakte. OTP expiry <code>OTP_EXPIRE_SECONDS=300</code> hai, yani 5 minutes.</p>
+
+    <h3>8.2 How Frontend Talks To Backend</h3>
+    <p>Frontend browser directly Express backend ko call kar sakta hai, but CORS issue aa sakta hai because frontend <code>localhost:3000</code> par hai aur backend <code>localhost:4001</code> par. Is project me Next.js API routes proxy layer ki tarah kaam karte hain.</p>
+    <pre>Browser UI
+  -> /api/auth/login        (same-origin Next.js route)
+  -> Next.js route.ts
+  -> http://localhost:4001/auth/login   (Express backend)
+  -> PostgreSQL / Redis
+  -> Response back to browser</pre>
+    <p>Iska benefit: frontend code clean rehta hai, backend URL <code>NEXT_PUBLIC_API_URL</code> se control hota hai, and browser-level CORS complexity reduce ho jati hai. Backend me CORS enabled hai for trusted/direct access, but normal app flow proxy se hota hai.</p>
+
+    <h3>8.3 How QR Works</h3>
+    <p>QR code basically ek JSON string ko image/pattern me encode karta hai. Project me <code>qrcode.react</code> QR generate karta hai and <code>jsQR</code> camera image se QR decode karta hai.</p>
+    <h4>Receiver Identity QR</h4>
+    <pre>{
+  "receiver_id": "receiver-user-uuid",
+  "wallet_id": "receiver-user-uuid",
+  "device_id": "web",
+  "session_id": "SES-171...",
+  "timestamp": 171...
+}</pre>
+    <p>Ye QR amount contain nahi karta. Iska purpose sirf receiver identity pass karna hai. Sender isko scan karta hai, backend se receiver validate hota hai, phir sender amount enter karta hai.</p>
+    <h4>Sender Final Payment QR</h4>
+    <pre>{
+  "txn_id": "transaction-uuid",
+  "sender_id": "sender-user-uuid",
+  "receiver_id": "receiver-user-uuid",
+  "amount": 10000,
+  "timestamp": 171...,
+  "signature": "64-character-sha256-hex",
+  "device_id": "web-abc"
+}</pre>
+    <p>Final QR offline mode me important hai. Sender ke device me transaction IndexedDB me save hoti hai, and receiver ko final QR scan karke proof/record milta hai. Jab network online hota hai, same payload backend par sync hota hai.</p>
+
+    <h3>8.4 Online Payment Flow Diagram</h3>
+    <pre>Receiver Identity QR
+      ↓
+Sender scans receiver QR
+      ↓
+Sender enters amount + note
+      ↓
+Sender enters UPI PIN
+      ↓
+POST /transactions/send-transaction
+      ↓
+Backend verifies JWT + PIN + balance
+      ↓
+DB transaction: debit sender, credit receiver
+      ↓
+Status = SYNCED, payment success</pre>
+
+    <h3>8.5 Offline Payment Flow Diagram</h3>
+    <pre>Receiver shows Identity QR
+      ↓
+Sender scans QR while offline
+      ↓
+Sender enters amount + PIN
+      ↓
+Frontend creates txn_id + timestamp + SHA-256 signature
+      ↓
+Save in IndexedDB as PENDING_SYNC
+      ↓
+Sender shows Final Payment QR
+      ↓
+Receiver scans and stores pending incoming txn
+      ↓
+Internet returns
+      ↓
+syncEngine sends pending txns to backend
+      ↓
+Backend validates duplicate, timestamp, signature, balance
+      ↓
+PostgreSQL ledger updates, status = SYNCED</pre>
+
+    <h3>8.6 Why IndexedDB Is Used</h3>
+    <p><code>localStorage</code> sirf small string key-value data ke liye achha hota hai. Offline transaction queue structured object hai and durable browser database chahiye. Isliye IndexedDB use hua, and <code>idb-keyval</code> usko simple get/set API ke form me use karne deta hai.</p>
+  </section>
+
+  <section class="page">
+    <h2>9. Frontend Working</h2>
+    <h3>Frontend Flow</h3>
+    <div class="flow">
+      <div class="step"><b>1. Login</b><br>User enters mobile, OTP request goes to backend.</div>
+      <div class="step"><b>2. Verify</b><br>OTP verify returns JWT and user info.</div>
+      <div class="step"><b>3. Dashboard</b><br>Wallet and pending amount are fetched/displayed.</div>
+      <div class="step"><b>4. Send/Receive</b><br>QR identity and payment QR are used.</div>
+      <div class="step"><b>5. Sync</b><br>Pending IndexedDB transactions sync online.</div>
+    </div>
+    <h3>State And Storage</h3>
+    <ul>
+      <li><code>localStorage</code>: stores JWT as <code>syncpay_token</code> and device id.</li>
+      <li><code>sessionStorage</code>: temporary send/receive data like receiver id, amount, note, transaction id.</li>
+      <li><code>IndexedDB</code>: durable queue for offline pending transactions.</li>
+      <li><code>Zustand</code>: app-level memory state for auth, wallet and network.</li>
+    </ul>
+    <h3>Important Frontend Explanation</h3>
+    <p><code>providers.tsx</code> runs globally. It restores login from localStorage and calls <code>initSyncOnOnline()</code>. This means agar user offline payment karta hai, then jaise hi browser online event receive karta hai, sync engine pending transactions backend ko send karta hai.</p>
+    <p><code>idb.ts</code> me functions like <code>savePendingTxns</code>, <code>getPendingTxns</code>, <code>markTxnSynced</code>, <code>markTxnFailed</code> hain. Ye offline transaction lifecycle maintain karte hain.</p>
+  </section>
+
+  <section class="page">
+    <h2>10. Backend Working</h2>
+    <h3>API Route Summary</h3>
+    <table>
+      <tr><th>Route</th><th>Purpose</th></tr>
+      <tr><td><code>POST /auth/signup</code></td><td>New user create, wallet create, OTP generate.</td></tr>
+      <tr><td><code>POST /auth/login</code></td><td>Registered user OTP login.</td></tr>
+      <tr><td><code>POST /auth/verify-otp</code></td><td>OTP verify, JWT issue.</td></tr>
+      <tr><td><code>POST /auth/set-pin</code></td><td>Set/change 6 digit UPI PIN after hashing with bcrypt.</td></tr>
+      <tr><td><code>GET /wallet</code></td><td>Current user's wallet balance.</td></tr>
+      <tr><td><code>GET /wallet/user/:id</code></td><td>Validate receiver after QR scan.</td></tr>
+      <tr><td><code>POST /transactions/send-transaction</code></td><td>Online payment and immediate wallet update.</td></tr>
+      <tr><td><code>POST /transactions/settle-offline</code></td><td>Receiver submits offline payment QR when online.</td></tr>
+      <tr><td><code>POST /sync-transactions</code></td><td>Sender device uploads pending offline queue.</td></tr>
+      <tr><td><code>GET /admin/*</code></td><td>Admin-only dashboard, users, transactions, support.</td></tr>
+    </table>
+    <h3>Auth Logic</h3>
+    <p>JWT token carries <code>userId</code>, mobile, syncId and role. Backend middleware <code>requireAuth</code> validates token from Authorization header. Admin APIs first require auth and then <code>requireAdmin</code> checks role.</p>
+    <h3>Wallet Ledger Logic</h3>
+    <p>Amounts are stored in paise as integer/BIGINT, not floating rupees. Example: Rs 5000 = 500000 paise. This avoids decimal precision errors.</p>
+  </section>
+
+  <section class="page">
+    <h2>11. Database Schema</h2>
+    <img class="diagram" src="file:///C:/Users/Avinash/Downloads/ChatGPT%20Image%20May%208,%202026,%2002_21_23%20PM%20(1).png" alt="SyncPay database schema ER diagram">
+    <h3>Main Tables In Actual Code</h3>
+    <table>
+      <tr><th>Table</th><th>Important Columns</th><th>Purpose</th></tr>
+      <tr><td><code>users</code></td><td>id, name, mobile_number, sync_id, pin_hash, role</td><td>Stores user profile and login identity.</td></tr>
+      <tr><td><code>wallets</code></td><td>user_id, total_balance, offline_reserved, available_balance, offline_limit</td><td>One wallet per user.</td></tr>
+      <tr><td><code>transactions</code></td><td>txn_id, sender_id, receiver_id, amount, status, sync_status, signature, device_id</td><td>Central ledger of all synced payments.</td></tr>
+      <tr><td><code>devices</code></td><td>device_id, user_id, device_name, last_active</td><td>Device binding/security tracking.</td></tr>
+      <tr><td><code>sync_logs</code></td><td>user_id, txn_count, status, details</td><td>Audit log for sync batches.</td></tr>
+      <tr><td><code>notifications</code></td><td>user_id, type, title, body, txn_id, read_at</td><td>User notification feed.</td></tr>
+      <tr><td><code>support_tickets</code></td><td>user_id, mobile_number, subject, message, status</td><td>Help/support tickets.</td></tr>
+      <tr><td><code>fraud_alerts</code></td><td>txn_id, user_id, reason, severity, resolved</td><td>Admin/fraud future module.</td></tr>
+    </table>
+    <h3>Relationships</h3>
+    <ul>
+      <li>One user has one wallet: <code>wallets.user_id</code> is unique foreign key to <code>users.id</code>.</li>
+      <li>One user can have many sent/received transactions.</li>
+      <li>One user can have many devices, notifications, support tickets and sync logs.</li>
+      <li>Transactions reference sender and receiver from users table.</li>
+    </ul>
+  </section>
+
+  <section class="page">
+    <h2>12. Transaction Working Flow</h2>
+    <img class="diagram" src="file:///C:/Users/Avinash/Downloads/working.png" alt="SyncPay working flow">
+    <h3>Online Payment Flow</h3>
+    <ol>
+      <li>Receiver opens Receive page and shows identity QR.</li>
+      <li>Sender scans receiver QR, app validates receiver user.</li>
+      <li>Sender enters amount and optional note.</li>
+      <li>Sender enters UPI PIN.</li>
+      <li>Frontend calls <code>/api/transactions/send</code>, which proxies to backend <code>/transactions/send-transaction</code>.</li>
+      <li>Backend starts DB transaction, locks sender wallet row, checks balance, inserts transaction, debits sender and credits receiver.</li>
+      <li>Status becomes <code>SYNCED</code> and both wallets are updated.</li>
+    </ol>
+    <h3>Offline Payment Flow</h3>
+    <ol>
+      <li>Receiver shows identity QR even without internet.</li>
+      <li>Sender scans QR, enters amount and UPI PIN.</li>
+      <li>Frontend creates transaction id, timestamp, device id and SHA-256 signature.</li>
+      <li>Transaction is saved in IndexedDB with <code>PENDING_SYNC</code>.</li>
+      <li>Sender shows payment QR to receiver. Receiver scans it and stores incoming pending transaction.</li>
+      <li>When online, <code>syncEngine.ts</code> sends pending transactions to backend.</li>
+      <li>Backend verifies sender, duplicate transaction, timestamp, signature, receiver, balance, then updates ledger.</li>
+    </ol>
+  </section>
+
+  <section class="page">
+    <h2>13. Installation And Run Steps</h2>
+    <h3>Prerequisites</h3>
+    <ul>
+      <li>Node.js and npm installed.</li>
+      <li>PostgreSQL installed locally, or hosted PostgreSQL configured in <code>DATABASE_URL</code>.</li>
+      <li>Optional: Redis and Twilio. Development can work without them because OTP fallback exists.</li>
+    </ul>
+    <h3>Backend Setup</h3>
+    <pre>cd C:\Users\Avinash\Desktop\SyncPay\backend
+npm install
+npm run db:init
+npm run db:seed
+npm run dev</pre>
+    <p>Backend current local port: <code>http://localhost:4001</code> according to current <code>backend/.env</code>.</p>
+    <h3>Frontend Setup</h3>
+    <pre>cd C:\Users\Avinash\Desktop\SyncPay\frontend
+npm install
+npm run dev</pre>
+    <p>Frontend: <code>http://localhost:3000</code>. Frontend environment points to backend using <code>NEXT_PUBLIC_API_URL=http://localhost:4001</code>.</p>
+    <h3>Local Database Creation</h3>
+    <pre>psql -U postgres -c "CREATE DATABASE syncpay;"</pre>
+    <p>Then update <code>backend/.env</code>:</p>
+    <pre>PORT=4001
+NODE_ENV=development
+DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/syncpay
+REDIS_URL=redis://localhost:6379
+JWT_SECRET=change-this-secret
+JWT_EXPIRE=7d
+OTP_EXPIRE_SECONDS=300
+DEFAULT_OFFLINE_LIMIT=500000
+ALLOW_LOGGED_OTP=true
+ALLOW_OTP_WITHOUT_SMS=true</pre>
+    <div class="warn callout">
+      <b>.env explanation:</b> <code>.env</code> stores configuration and secrets. We should not commit real passwords or JWT secrets. <code>.env.example</code> is only a template for teammates.
+    </div>
+  </section>
+
+  <section class="page">
+    <h2>14. Database Commands And Sample Queries</h2>
+    <h3>Open PostgreSQL</h3>
+    <pre>psql -U postgres -d syncpay</pre>
+    <p>If hosted DB is used, use pgAdmin or psql connection string from environment, but never show password publicly in viva.</p>
+    <h3>Useful Viva Queries</h3>
+    <pre>-- 1. Show users
+SELECT id, name, mobile_number, sync_id, role, created_at
+FROM users
+ORDER BY created_at DESC;
+
+-- 2. Show wallet balances in rupees
+SELECT u.name, u.mobile_number,
+       w.total_balance / 100.0 AS total_rupees,
+       w.available_balance / 100.0 AS available_rupees,
+       w.offline_limit / 100.0 AS offline_limit_rupees
+FROM wallets w
+JOIN users u ON u.id = w.user_id;
+
+-- 3. Show transaction history with sender/receiver names
+SELECT t.txn_id, s.name AS sender, r.name AS receiver,
+       t.amount / 100.0 AS amount_rupees,
+       t.status, t.sync_status, t.created_at
+FROM transactions t
+JOIN users s ON s.id = t.sender_id
+JOIN users r ON r.id = t.receiver_id
+ORDER BY t.created_at DESC;
+
+-- 4. Pending sync audit logs
+SELECT user_id, txn_count, status, details, synced_at
+FROM sync_logs
+ORDER BY synced_at DESC;</pre>
+    <h3>Why Transactions Are Important</h3>
+    <p>Online payment backend uses DB transaction with <code>BEGIN</code>, wallet row lock <code>FOR UPDATE</code>, and <code>COMMIT</code>. This prevents race conditions like two payments spending the same balance simultaneously.</p>
+  </section>
+
+  <section class="page">
+    <h2>15. Security And Reliability Points</h2>
+    <ul>
+      <li><b>JWT authentication:</b> Every protected API requires Bearer token.</li>
+      <li><b>UPI PIN:</b> PIN is never stored directly. It is hashed with bcrypt and only hash is stored.</li>
+      <li><b>OTP expiry:</b> OTP expiry is configured with <code>OTP_EXPIRE_SECONDS</code>. Development can log OTP for testing.</li>
+      <li><b>Offline signature:</b> Client builds deterministic payload and hashes with SHA-256. Backend recomputes hash and verifies it.</li>
+      <li><b>Timestamp validation:</b> Offline transactions have max age window. Current config default allows up to 7 days for offline sync.</li>
+      <li><b>Idempotency:</b> Duplicate transaction id is checked. If already synced with same sender/receiver, backend treats it safely as already settled.</li>
+      <li><b>Balance checks:</b> Sender wallet is checked before debit. Offline limit prevents unlimited offline spending.</li>
+      <li><b>CORS:</b> Backend allows frontend origin through CORS config.</li>
+    </ul>
+    <div class="callout">
+      <b>Honest limitation:</b> Current project uses SHA-256 hash as demo signature. In production, proper asymmetric cryptography like Ed25519 public/private key pair should be used, and device public key should be stored server-side.
+    </div>
+  </section>
+
+  <section class="page">
+    <h2>16. Admin And Support Module</h2>
+    <h3>Admin Role</h3>
+    <p>Admin user is created in <code>seed.js</code>. After OTP login, JWT includes role <code>admin</code>. Dashboard redirects admin to admin panel.</p>
+    <h3>Admin Features</h3>
+    <ul>
+      <li>View total users, total transactions and pending sync count.</li>
+      <li>List users with wallet balances.</li>
+      <li>Credit wallet amount and set offline limit.</li>
+      <li>View transactions and pending sync records.</li>
+      <li>View support tickets.</li>
+      <li>Reverse a synced transaction by moving money back and marking transaction failed.</li>
+    </ul>
+    <h3>Support</h3>
+    <p>User can raise support ticket from help/support UI. Backend stores ticket in <code>support_tickets</code>. Admin can view tickets.</p>
+  </section>
+
+  <section class="page">
+    <h2>17. Viva Questions And Answers</h2>
+    <h3>Q1. What is SyncPay?</h3>
+    <p>SyncPay is an offline-first QR based wallet system. It allows users to send and receive wallet payments. Online payments settle instantly, and offline payments are stored locally and synced later to the central PostgreSQL ledger.</p>
+    <h3>Q2. Why did you use PostgreSQL?</h3>
+    <p>Wallet and transaction data are relational. We need foreign keys, constraints, transaction safety, and consistent ledger updates. PostgreSQL gives ACID transactions, row locking and strong data integrity.</p>
+    <h3>Q3. What happens when internet is off?</h3>
+    <p>Frontend detects offline through browser network APIs. Instead of calling backend, it creates a transaction payload, signs/hashes it, saves it in IndexedDB as <code>PENDING_SYNC</code>, and displays QR to receiver. When internet returns, sync engine sends it to backend.</p>
+    <h3>Q4. How do you prevent duplicate sync?</h3>
+    <p>Each transaction has unique <code>txn_id</code>. Backend checks whether this id already exists. If it is already synced with same sender and receiver, it returns success as already settled. If duplicate mismatch happens, it fails.</p>
+    <h3>Q5. How is balance updated?</h3>
+    <p>Backend starts a DB transaction, locks sender wallet row, checks available balance, inserts transaction, debits sender wallet and credits receiver wallet, then commits. If any step fails, rollback happens.</p>
+    <h3>Q6. What is offline limit?</h3>
+    <p>Offline limit is maximum amount a user can spend while offline. Frontend checks pending offline amount plus new amount against this limit. Admin can credit wallet and set offline limit.</p>
+    <h3>Q7. What is JWT?</h3>
+    <p>JWT is a signed token used for session authentication. After OTP verification backend issues JWT. Frontend sends it in Authorization header for protected APIs.</p>
+    <h3>Q8. What is IndexedDB?</h3>
+    <p>IndexedDB is browser-side persistent storage. We use it through idb-keyval to save pending transactions because localStorage is not suitable for structured offline queue data.</p>
+    <h3>Q9. What are project limitations?</h3>
+    <p>Real banking/UPI integration is not implemented. Offline security uses demo hash signature; production should use true public/private key signing. SMS service is optional and development can log OTP.</p>
+  </section>
+
+  <section class="page">
+    <h2>18. Member-Specific Viva Questions</h2>
+    <h3>Avinash - Backend/API/Database Viva</h3>
+    <table>
+      <tr><th>Question</th><th>Answer</th></tr>
+      <tr><td>What was your main contribution?</td><td>I handled backend APIs, PostgreSQL integration, JWT authentication, wallet transaction update logic and offline sync validation.</td></tr>
+      <tr><td>How does backend protect APIs?</td><td>Protected routes use <code>requireAuth</code>. It reads Bearer token, verifies JWT secret, and attaches user data to <code>req.user</code>. Admin routes also check <code>role === 'admin'</code>.</td></tr>
+      <tr><td>How does online payment update wallet safely?</td><td>Backend starts a DB transaction, locks sender wallet row using <code>FOR UPDATE</code>, checks balance, inserts transaction, debits sender, credits receiver and commits. If any error occurs, rollback happens.</td></tr>
+      <tr><td>Why store amount in paise?</td><td>Integer paise avoids floating-point precision issue. For example Rs 100 is stored as 10000.</td></tr>
+      <tr><td>How does offline sync validation happen?</td><td>Backend checks sender ownership, duplicate transaction id, timestamp validity, signature/hash, receiver existence and sender balance before ledger update.</td></tr>
+    </table>
+
+    <h3>Aviral - Project Overview/Auth/Wallet Viva</h3>
+    <table>
+      <tr><th>Question</th><th>Answer</th></tr>
+      <tr><td>What was your main contribution?</td><td>I prepared the overall project explanation, problem statement, OTP authentication flow, wallet lifecycle and user journey from login to payment success.</td></tr>
+      <tr><td>What problem does SyncPay solve?</td><td>It solves the issue of payment failure in weak or no internet areas by allowing offline transaction recording and later server sync.</td></tr>
+      <tr><td>How does OTP login work?</td><td>User enters mobile number, backend generates 6 digit OTP, stores it temporarily using Redis or in-memory store, and after correct OTP verification backend returns JWT token.</td></tr>
+      <tr><td>What is the role of wallet in this project?</td><td>Wallet stores total balance, available balance, offline limit and pending/settled transaction impact. It is linked one-to-one with each user.</td></tr>
+      <tr><td>How will you explain the project in one minute?</td><td>SyncPay is an offline-first QR wallet where online payments settle instantly and offline payments are stored locally, then validated and synced to PostgreSQL central ledger when network returns.</td></tr>
+    </table>
+
+    <h3>Shubhi - Frontend/UI/QR Viva</h3>
+    <table>
+      <tr><th>Question</th><th>Answer</th></tr>
+      <tr><td>What was your main contribution?</td><td>I worked on frontend screens, mobile-friendly user flow, dashboard, send/receive pages and QR generation/scanning experience.</td></tr>
+      <tr><td>How is QR generated?</td><td>We use <code>qrcode.react</code>. A JSON payload is converted to string using <code>JSON.stringify</code> and passed to <code>QRCodeSVG</code>.</td></tr>
+      <tr><td>How is QR scanned?</td><td>The app opens camera with browser media APIs, draws video frame on canvas and <code>jsQR</code> decodes QR data from image pixels.</td></tr>
+      <tr><td>What does dashboard show?</td><td>Dashboard shows total wallet balance, offline spendable amount, offline limit remaining, pending outgoing/incoming sync amount and quick actions.</td></tr>
+      <tr><td>How is login state maintained?</td><td>JWT token is stored in localStorage and app state is managed with Zustand. Provider restores user session by calling <code>/api/auth/me</code>.</td></tr>
+    </table>
+
+    <h3>Abhinay - Offline Sync/Schema/Demo Viva</h3>
+    <table>
+      <tr><th>Question</th><th>Answer</th></tr>
+      <tr><td>What was your main contribution?</td><td>I focused on offline sync understanding, database schema explanation, transaction flow testing and demo preparation.</td></tr>
+      <tr><td>Where are offline transactions stored?</td><td>They are stored in browser IndexedDB database <code>syncpay-offline</code>, store <code>pending_transactions</code>, with transaction id as key.</td></tr>
+      <tr><td>When does sync run?</td><td><code>initSyncOnOnline</code> listens to browser online event. When internet returns, <code>syncPendingTransactions</code> sends pending transactions to backend.</td></tr>
+      <tr><td>What are main DB tables?</td><td>Main tables are users, wallets, transactions, devices, sync_logs, notifications, support_tickets and fraud_alerts.</td></tr>
+      <tr><td>How will you demo database?</td><td>I can run SQL queries to show users, wallet balances and transaction history joined with sender/receiver names.</td></tr>
+    </table>
+  </section>
+
+  <section class="page">
+    <h2>19. Team Presentation Split</h2>
+    <table>
+      <tr><th>Teammate</th><th>Topic To Explain</th><th>Key Lines</th></tr>
+      <tr><td>Avinash</td><td>Backend + Database Integration</td><td>Express APIs, JWT middleware, wallet update, PostgreSQL ledger, sync endpoint validation.</td></tr>
+      <tr><td>Aviral</td><td>Introduction + OTP/Wallet Flow</td><td>Problem statement, solution overview, OTP authentication, wallet lifecycle and online payment explanation.</td></tr>
+      <tr><td>Shubhi</td><td>Frontend + QR UI</td><td>Next.js pages, dashboard, send/receive screens, QR generation/scanning, user-friendly mobile flow.</td></tr>
+      <tr><td>Abhinay</td><td>Offline Sync + Demo + Queries</td><td>IndexedDB pending queue, auto sync, schema relationships, sample SQL queries and final demo/security/future scope.</td></tr>
+    </table>
+    <h3>Final Closing Script</h3>
+    <p>To conclude, SyncPay demonstrates a practical offline-first wallet design. The main idea is that the client can safely queue transactions during network failure, and the backend later validates and settles them in a central ledger. This makes the project useful for low-connectivity situations and also shows full-stack concepts like authentication, database transactions, QR handling and offline sync.</p>
+  </section>
+</body>
+</html>
